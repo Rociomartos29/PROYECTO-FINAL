@@ -1,6 +1,7 @@
 import os
 import pygame as pg
 from . import ALTO, ANCHO, FPS
+from .objetos import Nave
 
 
 class Principal:
@@ -96,6 +97,7 @@ class Historia(Principal):
 class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
+        self.jugador = Nave()
         
         
     def bucle_principal(self):
@@ -112,6 +114,8 @@ class Nivel1(Principal):
             
 
             self.pintar_fondo()
+            self.jugador.update()
+            self.pantalla.blit(self.jugador.image, self.jugador.rect)
             pg.display.flip()
 
     def pintar_fondo(self):

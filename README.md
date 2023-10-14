@@ -24,3 +24,5 @@ Proyecto fin Bootcamp Aprender a programar desde cero
 
     # Nivel 1 
         He creado y pintado el fondo del nivel
+        Creo la nave, pero no consigo pintarla, me he saturado un poco.
+        Nos vemos mañana
