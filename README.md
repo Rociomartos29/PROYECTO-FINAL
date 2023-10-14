@@ -21,3 +21,6 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     # Historia
         He creado la pantalla historia.
         Sinceramente es un coipa y pega de la pantalla anterior cambiando la ruta de imagen.
+
+    # Nivel 1 
+        He creado y pintado el fondo del nivel

@@ -1,6 +1,6 @@
 import os
 import pygame as pg
-from . import ALTO, ANCHO
+from . import ALTO, ANCHO, FPS
 
 
 class Principal:
@@ -17,7 +17,7 @@ class Portada(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         
-        ruta = os.path.join('animacion',
+        ruta = os.path.join( 'animacion','image',
                          'THE QUEST.png')
         self.animacion = pg.image.load(ruta)
 
@@ -56,7 +56,7 @@ class Historia(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         
-        ruta = os.path.join('animacion',
+        ruta = os.path.join( 'animacion','image',
                          'Historia.png')
         self.historia = pg.image.load(ruta)
 
@@ -93,8 +93,37 @@ class Historia(Principal):
         self.pantalla.blit(texto, (pos_x, pos_y))
 
 
-class Nivel1:
-    pass
+class Nivel1(Principal):
+    def __init__(self, pantalla):
+        super().__init__(pantalla)
+        
+        
+    def bucle_principal(self):
+        super().bucle_principal()
+        salir = False
+        juego_iniciado = False
+        while not salir:
+            self.reloj.tick(FPS)
+            for evento in pg.event.get():
+                if evento.type == pg.QUIT:
+                    return  True
+                if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
+                    juego_iniciado = True
+            
+
+            self.pintar_fondo()
+            pg.display.flip()
+
+    def pintar_fondo(self):
+        ruta = os.path.join( 'animacion','image',
+                         'fondo.png')
+        self.fondo = pg.image.load(ruta)
+        ancho, alto = self.fondo.get_size()
+        pos_x = (ANCHO - ancho)
+        pos_y = (ALTO - alto)
+        self.pantalla.blit(self.fondo, (pos_x, pos_y))
+
+    
 
 class Nivel2:
     pass
