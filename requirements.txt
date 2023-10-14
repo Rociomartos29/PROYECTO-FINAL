@@ -1,0 +1,4 @@
+autopep8==2.0.4
+pycodestyle==2.11.1
+pygame==2.5.2
+tomli==2.0.1
