@@ -21,6 +21,10 @@ class Portada(Principal):
                          'THE QUEST.png')
         self.animacion = pg.image.load(ruta)
 
+        ruta_font = os.path.join('animacion', 
+                                 'CabinSketch-Bold.ttf')
+        self.tipo = pg.font.Font(ruta_font, 35)
+
     def bucle_principal(self):
         super().bucle_principal()
         salir = False
@@ -32,6 +36,7 @@ class Portada(Principal):
                     salir = True
 
             self.pintar_animacion()
+            self.pintar_mensaje()
             pg.display.flip()
 
     def pintar_animacion(self):
@@ -39,6 +44,13 @@ class Portada(Principal):
         pos_x = (ANCHO - ancho)
         pos_y = (ALTO - alto)
         self.pantalla.blit(self.animacion, (pos_x, pos_y))
+
+    def pintar_mensaje(self):
+        mensaje = 'Pulsa <Espacio> para comenzar'
+        texto = self.tipo.render(mensaje, True, (255, 255, 255))
+        pos_x = (ANCHO - texto.get_width())
+        pos_y = ALTO / 4 * 3
+        self.pantalla.blit(texto, (pos_x, pos_y))
 
 class Historia:
     pass

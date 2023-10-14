@@ -14,3 +14,4 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     He añadido la imagen de portada que he creado en canva, tambien un video igual pero no consigo ponerlo.
     Creo la pantalla y coloco la imagen pero no se me imprime.
     Por fin he conseguido pintar la imagen despues de revisar el codigo mil veces (estaba llamando al metodo sin ponerle los parentesis)
+    Realizo el mensaje de pasar a la siguiente página.
