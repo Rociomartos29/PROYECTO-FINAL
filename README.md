@@ -11,7 +11,13 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     He creado el entorno virtual y he instalado todo lo necesario para que funcione que se encuentra en el
     archivo 'requirements.txt'. 
     Tambien he creado los archivos que en este momento creo necesarios para funcionar.
-    He añadido la imagen de portada que he creado en canva, tambien un video igual pero no consigo ponerlo.
-    Creo la pantalla y coloco la imagen pero no se me imprime.
-    Por fin he conseguido pintar la imagen despues de revisar el codigo mil veces (estaba llamando al metodo sin ponerle los parentesis)
-    Realizo el mensaje de pasar a la siguiente página.
+    
+    # Portada
+        He añadido la imagen de portada que he creado en canva, tambien un video igual pero no consigo ponerlo.
+        Creo la pantalla y coloco la imagen pero no se me imprime.
+        Por fin he conseguido pintar la imagen despues de revisar el codigo mil veces (estaba llamando al metodo sin ponerle los parentesis)
+        Realizo el mensaje de pasar a la siguiente página.
+
+    # Historia
+        He creado la pantalla historia.
+        Sinceramente es un coipa y pega de la pantalla anterior cambiando la ruta de imagen.
