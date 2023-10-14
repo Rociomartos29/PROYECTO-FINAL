@@ -31,6 +31,15 @@ class Portada(Principal):
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     salir = True
 
+            self.pintar_animacion()
+            pg.display.flip()
+
+    def pintar_animacion(self):
+        ancho, alto = self.animacion.get_size()
+        pos_x = (ANCHO - ancho)
+        pos_y = (ALTO - alto)
+        self.pantalla.blit(self.animacion, (pos_x, pos_y))
+
 class Historia:
     pass
 
