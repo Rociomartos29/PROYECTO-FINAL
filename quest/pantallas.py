@@ -112,10 +112,10 @@ class Nivel1(Principal):
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     juego_iniciado = True
             
-
-            self.pintar_fondo()
             self.jugador.update()
-            self.pantalla.blit(self.jugador.image, self.jugador.rect)
+            self.pintar_fondo()
+            
+            #self.pantalla.blit(self.jugador.image, self.jugador.rect)
             pg.display.flip()
 
     def pintar_fondo(self):
