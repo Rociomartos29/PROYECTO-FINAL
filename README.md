@@ -38,3 +38,4 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     Empiezo con el mismo problema.
     Después de 2 horas he consegido que se me pinte la nave y se mueva
     Limito para que no se salga de la pantalla y la coloco en el centro(Antes estaba más arriba)
+    Me habia equivocado y he cambiado la direccion de la nave y el movimiento

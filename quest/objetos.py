@@ -1,7 +1,7 @@
-
+import random
 import os
 import pygame as pg
-from . import ANCHO, ALTO
+from . import ANCHO, ALTO, TIEMPO_MAX
 
 
 class Nave(pg.sprite.Sprite):
@@ -25,20 +25,44 @@ class Nave(pg.sprite.Sprite):
     def comprobar_teclas(self):
         velocidad = 10
         teclas = pg.key.get_pressed()
-        if teclas[pg.K_LEFT]:
-            self.rect.x -= velocidad
-            if self.rect.left < 0:
-                self.rect.left = 0
-        if teclas[pg.K_RIGHT]:
-            self.rect.x += velocidad
-            if self.rect.right > ANCHO:
-                self.rect.right = ANCHO
+        if teclas[pg.K_UP]:
+            self.rect.y -= velocidad
+            if self.rect.top < 0:
+                self.rect.top = 0
+        if teclas[pg.K_DOWN]:
+            self.rect.y += velocidad
+            if self.rect.bottom > ALTO:
+                self.rect.bottom = ALTO
 
 
 
-class Obtaculos(pg.sprite.Sprite):
+
+
+
+
+class GrupoMeteoros:
     def __init__(self):
-        self.images = []
+        self.tiempo_inicial = pg.time.get_ticks()
+        self.tiempo_max = TIEMPO_MAX
+        
+    class Obtaculos(pg.sprite.Sprite):
+        def __init__(self):
+            super().__init__()
+            self.images = []
 
-        ruta_meteoro1 = 'animacion', 'image', 'meteorito.jpg'
-        ruta_meteorito2 = 'animacion', 'image', 'meteoro.jpeg'
+            ruta_meteoro = 'animacion', 'image', 'meteorito.jpg'
+            self.meteoro = pg.image.load(ruta_meteoro)
+            self.rect = self.meteoro.get_rect()
+            ruta_meteorito = 'animacion', 'image', 'meteoro.jpeg'
+            self.meteorito = pg.image.load(ruta_meteorito)
+            self.rect2 = self.meteorito.get_rect()
+
+    def generar_meteorito(self):
+        tiempo_actual = pg.time.get_ticks()
+        if tiempo_actual - self.tiempo_inicial < self.tiempo_max:
+            if random.randrange(100) < 2:
+                meteorito = self.Obtaculos()
+                self.meteoritos.add(meteorito)
+                self.tiempo_inicial = tiempo_actual
+
+        
