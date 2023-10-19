@@ -26,3 +26,14 @@ Proyecto fin Bootcamp Aprender a programar desde cero
         He creado y pintado el fondo del nivel
         Creo la nave, pero no consigo pintarla, me he saturado un poco.
         Nos vemos mañana
+
+
+# Día 17/10/23 día 2 de proyecto
+    Sigo atascada con la nave 
+    Intento cambiar el formato del fondo por si ese es el problema.
+    Sigo igual.
+
+
+# Día 19/10/23 día 2 de proyecto
+    Empiezo con el mismo problema.
+    Después de 2 horas he consegido que se me pinte la nave y se mueva

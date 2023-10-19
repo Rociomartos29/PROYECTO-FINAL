@@ -98,6 +98,9 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
+        ruta_fondo = os.path.join('animacion', 'image', 'fondo.png')
+        self.fondo = pg.image.load(ruta_fondo)
+
         
         
     def bucle_principal(self):
@@ -112,16 +115,16 @@ class Nivel1(Principal):
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     juego_iniciado = True
             
+            
             self.jugador.update()
             self.pintar_fondo()
+            self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
             
             #self.pantalla.blit(self.jugador.image, self.jugador.rect)
             pg.display.flip()
 
     def pintar_fondo(self):
-        ruta = os.path.join( 'animacion','image',
-                         'fondo.png')
-        self.fondo = pg.image.load(ruta)
+        
         ancho, alto = self.fondo.get_size()
         pos_x = (ANCHO - ancho)
         pos_y = (ALTO - alto)

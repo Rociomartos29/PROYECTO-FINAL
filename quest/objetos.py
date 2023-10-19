@@ -7,18 +7,18 @@ from . import ANCHO, ALTO
 class Nave(pg.sprite.Sprite):
     def __init__(self):
         self.imagenes = []
-        margen = 25
+        margen = 750
         
         
-        ruta_image = os.path.join('animacion', 'image', 'nave.png')
-        self.imagenes.append(pg.image.load(ruta_image))
-        self.rect = self.imagenes.get_rect()
-        self.rect = margen
+        ruta_image = os.path.join('animacion', 'image', 'nave1.png')
+        self.imagenes=  pg.image.load(ruta_image)
+        self.rect = self.imagenes.get_rect(midbottom=(ANCHO-margen, ALTO/2))
+        
         
 
     def update(self):
 
-        self.comprobar_teclas()
+            self.comprobar_teclas()
     
 
 
