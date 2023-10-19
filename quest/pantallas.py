@@ -98,7 +98,7 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
-        ruta_fondo = os.path.join('animacion', 'image', 'fondo.png')
+        ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
 
         
