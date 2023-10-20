@@ -1,7 +1,7 @@
 import os
 import pygame as pg
 from . import ALTO, ANCHO, FPS
-from .objetos import Nave, GrupoMeteoros
+from .objetos import Nave, Obtaculos
 
 
 class Principal:
@@ -23,7 +23,7 @@ class Portada(Principal):
         self.animacion = pg.image.load(ruta)
 
         ruta_font = os.path.join('animacion', 
-                                 'CabinSketch-Bold.ttf')
+                                 'sysfont.otf')
         self.tipo = pg.font.Font(ruta_font, 35)
 
     def bucle_principal(self):
@@ -47,7 +47,7 @@ class Portada(Principal):
         self.pantalla.blit(self.animacion, (pos_x, pos_y))
 
     def pintar_mensaje(self):
-        mensaje = 'Pulsa <Espacio> para comenzar'
+        mensaje = 'Pulsa Espacio para comenzar'
         texto = self.tipo.render(mensaje, True, (255, 255, 255))
         pos_x = (ANCHO - texto.get_width())
         pos_y = ALTO / 4 * 3
@@ -62,7 +62,7 @@ class Historia(Principal):
         self.historia = pg.image.load(ruta)
 
         ruta_font = os.path.join('animacion', 
-                                 'CabinSketch-Bold.ttf')
+                                 'sysfont.otf')
         self.tipo = pg.font.Font(ruta_font, 35)
 
 
@@ -87,7 +87,7 @@ class Historia(Principal):
         self.pantalla.blit(self.historia, (pos_x, pos_y))
 
     def pintar_mensaje(self):
-        mensaje = 'Pulsa <Espacio> para comenzar'
+        mensaje = 'Pulsa Espacio para comenzar'
         texto = self.tipo.render(mensaje, True, (255, 255, 255))
         pos_x = (ANCHO - texto.get_width())
         pos_y = ALTO / 4 * 3
@@ -98,7 +98,10 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
-        self.meteoritos = pg.sprite.Group()
+        self.meteoritos = Obtaculos()
+        todos_los_obstaculos = pg.sprite.Group()
+        todos_los_obstaculos.add(self.meteoritos)
+        todos_los_obstaculos.update()
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
 
@@ -121,7 +124,8 @@ class Nivel1(Principal):
             self.jugador.update()
             self.pintar_fondo()
             self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            self.meteoritos.draw(self.pantalla)
+            self.pintar_obtaculos()
+            
             
             #self.pantalla.blit(self.jugador.image, self.jugador.rect)
             pg.display.flip()
@@ -141,14 +145,17 @@ class Nivel1(Principal):
         for fila in range(filas):   # 0-3
             for col in range(columnas):
                 # por aquí voy a pasar filas*columnas = 24 veces
-                obstaculo = GrupoMeteoros()
-                margen_izquierdo = (ANCHO - columnas * obstaculo.rect.width) / 2
+                margen_izquierdo = (ANCHO - columnas * self.meteoritos.rect.width) / 2
                 # x = ancho_lad * col
                 # y = alto_lad * fila
-                obstaculo.rect.x = obstaculo.rect.width * col + margen_izquierdo
-                obstaculo.rect.y = obstaculo.rect.height * fila + margen_superior
-                self.meteoritos.add(obstaculo)
-                print (obstaculo.rect)
+                self.meteoritos.rect.x = self.meteoritos.rect.width * col + margen_izquierdo
+                self.meteoritos.rect.y = self.meteoritos.rect.height * fila + margen_superior
+                self.meteoritos.add(self.meteoritos)
+                print (self.meteoritos.rect)
+
+            self.meteoritos.generar_meteorito()
+            self.meteoritos.update()
+
 
         self.pantalla.blit(self.meteoritos)
     

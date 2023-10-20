@@ -40,29 +40,26 @@ class Nave(pg.sprite.Sprite):
 
 
 
-class GrupoMeteoros:
-    def __init__(self):
-        self.tiempo_inicial = pg.time.get_ticks()
-        self.tiempo_max = TIEMPO_MAX
+
         
-    class Obtaculos(pg.sprite.Sprite):
+class Obtaculos(pg.sprite.Sprite):
         def __init__(self):
             super().__init__()
             self.images = []
 
-            ruta_meteoro = 'animacion', 'image', 'meteorito.jpg'
+            ruta_meteoro = os.path.join('animacion', 'image', 'meteorito.jpg')
             self.meteoro = pg.image.load(ruta_meteoro)
             self.rect = self.meteoro.get_rect()
-            ruta_meteorito = 'animacion', 'image', 'meteoro.jpeg'
+            ruta_meteorito = os.path.join('animacion', 'image', 'meteoro.jpeg')
             self.meteorito = pg.image.load(ruta_meteorito)
             self.rect2 = self.meteorito.get_rect()
+            self.tiempo_inicial = pg.time.get_ticks()
+            self.tiempo_max = TIEMPO_MAX
 
-    def generar_meteorito(self):
-        tiempo_actual = pg.time.get_ticks()
-        if tiempo_actual - self.tiempo_inicial < self.tiempo_max:
-            if random.randrange(100) < 2:
-                meteorito = self.Obtaculos()
-                self.meteoritos.add(meteorito)
-                self.tiempo_inicial = tiempo_actual
+        def generar_meteorito(self):
+            tiempo_actual = pg.time.get_ticks()
+            if tiempo_actual - self.tiempo_inicial < self.tiempo_max:
+                 if random.randrange(100) < 2:
+                    self.tiempo_inicial = tiempo_actual
 
         
