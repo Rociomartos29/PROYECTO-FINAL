@@ -98,19 +98,14 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
-        self.meteoritos = Obstaculo()
         self.grupo_obstaculos = pg.sprite.Group()  # Crea un grupo para los obstáculos
-        
+
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
         self.tiempo_generacion = 1000
         self.tiempo_actual = pg.time.get_ticks()
         self.tiempo_anterior_generacion = pg.time.get_ticks()
-        
 
-
-        
-        
     def bucle_principal(self):
         super().bucle_principal()
         salir = False
@@ -122,38 +117,37 @@ class Nivel1(Principal):
                     salir = True
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     juego_iniciado = True
-            
+
             # Lógica del juego
-            
+
             self.jugador.update()
             self.grupo_obstaculos.update()
-            
+
             self.pintar_fondo()
             self.generar_obstaculo()
+
             self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-       
+            self.grupo_obstaculos.draw(self.pantalla)  # Dibuja todos los obstáculos en el grupo
 
             pg.display.flip()
 
     def pintar_fondo(self):
-        
         ancho, alto = self.fondo.get_size()
         pos_x = (ANCHO - ancho)
         pos_y = (ALTO - alto)
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
-
-
     def generar_obstaculo(self):
-        obstaculo = self.meteoritos
-        self.grupo_obstaculos.add(obstaculo)
-        if pg.time.get_ticks() % 1000 == 0:
-            self.generar_obstaculo()
-        
-        for obstaculo in self.grupo_obstaculos:
-            self.meteoritos.dibujar(self.pantalla)
+        self.tiempo_actual = pg.time.get_ticks()
+        if self.tiempo_actual - self.tiempo_anterior_generacion >= self.tiempo_generacion:
+            obstaculo = Obstaculo()  # Crea un nuevo obstáculo
+            self.grupo_obstaculos.add(obstaculo)  # Agrega el obstáculo al grupo
+            self.tiempo_anterior_generacion = self.tiempo_actual  # Actualiza el tiempo anterior
 
-        self.grupo_obstaculos.update()
+        # Elimina los obstáculos que se salieron de la pantalla
+        for obstaculo in self.grupo_obstaculos.copy():
+            if obstaculo.rect.right < 0:
+                self.grupo_obstaculos.remove(obstaculo)
 
 
 
