@@ -44,3 +44,6 @@ Proyecto fin Bootcamp Aprender a programar desde cero
 # Día 20/10/23 día 4 de proyecto
     He cambiado la tipografía para que parezca la de una maquina arcade.
     Estoy intentando mejorar el grupo de obstaculos antes de pintarlo
+
+# Día 22/10/23 día 5 de proyecto
+    Cambio el color del mensaje y ajusto el texto de la segunda página al centro.

@@ -1,8 +1,7 @@
 import os
 import pygame as pg
-from . import ALTO, ANCHO, FPS
-from .objetos import Nave, Obtaculos
-
+from . import ALTO, ANCHO, FPS, COLOR_DE_TEXTO
+from .objetos import Nave
 
 class Principal:
     def __init__(self, pantalla):
@@ -19,7 +18,7 @@ class Portada(Principal):
         super().__init__(pantalla)
         
         ruta = os.path.join( 'animacion','image',
-                         'THE QUEST.png')
+                         'portada.png')
         self.animacion = pg.image.load(ruta)
 
         ruta_font = os.path.join('animacion', 
@@ -48,7 +47,7 @@ class Portada(Principal):
 
     def pintar_mensaje(self):
         mensaje = 'Pulsa Espacio para comenzar'
-        texto = self.tipo.render(mensaje, True, (255, 255, 255))
+        texto = self.tipo.render(mensaje, True, COLOR_DE_TEXTO)
         pos_x = (ANCHO - texto.get_width())
         pos_y = ALTO / 4 * 3
         self.pantalla.blit(texto, (pos_x, pos_y))
@@ -88,8 +87,8 @@ class Historia(Principal):
 
     def pintar_mensaje(self):
         mensaje = 'Pulsa Espacio para comenzar'
-        texto = self.tipo.render(mensaje, True, (255, 255, 255))
-        pos_x = (ANCHO - texto.get_width())
+        texto = self.tipo.render(mensaje, True, COLOR_DE_TEXTO)
+        pos_x = (ANCHO/ 4*3 - texto.get_width())
         pos_y = ALTO / 4 * 3
         self.pantalla.blit(texto, (pos_x, pos_y))
 
@@ -98,10 +97,10 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
-        self.meteoritos = Obtaculos()
-        todos_los_obstaculos = pg.sprite.Group()
-        todos_los_obstaculos.add(self.meteoritos)
-        todos_los_obstaculos.update()
+        #self.meteoritos = Obtaculos()
+        #todos_los_obstaculos = pg.sprite.Group()
+        #todos_los_obstaculos.add(self.meteoritos)
+        #todos_los_obstaculos.update()
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
 
@@ -124,7 +123,7 @@ class Nivel1(Principal):
             self.jugador.update()
             self.pintar_fondo()
             self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            self.pintar_obtaculos()
+            '''self.pintar_obtaculos()'''
             
             
             #self.pantalla.blit(self.jugador.image, self.jugador.rect)
@@ -137,7 +136,7 @@ class Nivel1(Principal):
         pos_y = (ALTO - alto)
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
-    def pintar_obtaculos(self):
+    '''def pintar_obtaculos(self):
         filas = 4
         columnas = 6
         margen_superior = 20
@@ -157,7 +156,7 @@ class Nivel1(Principal):
             self.meteoritos.update()
 
 
-        self.pantalla.blit(self.meteoritos)
+        self.pantalla.blit(self.meteoritos)'''
     
 
 

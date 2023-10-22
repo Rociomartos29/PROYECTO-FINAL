@@ -42,7 +42,7 @@ class Nave(pg.sprite.Sprite):
 
 
         
-class Obtaculos(pg.sprite.Sprite):
+'''class Obtaculos(pg.sprite.Sprite):
         def __init__(self):
             super().__init__()
             self.images = []
@@ -60,6 +60,6 @@ class Obtaculos(pg.sprite.Sprite):
             tiempo_actual = pg.time.get_ticks()
             if tiempo_actual - self.tiempo_inicial < self.tiempo_max:
                  if random.randrange(100) < 2:
-                    self.tiempo_inicial = tiempo_actual
+                    self.tiempo_inicial = tiempo_actual'''
 
         
