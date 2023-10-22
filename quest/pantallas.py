@@ -1,7 +1,7 @@
 import os
 import pygame as pg
 from . import ALTO, ANCHO, FPS, COLOR_DE_TEXTO
-from .objetos import Nave
+from .objetos import Nave, Obstaculo
 
 class Principal:
     def __init__(self, pantalla):
@@ -97,10 +97,8 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
-        #self.meteoritos = Obtaculos()
-        #todos_los_obstaculos = pg.sprite.Group()
-        #todos_los_obstaculos.add(self.meteoritos)
-        #todos_los_obstaculos.update()
+        self.meteoritos = Obstaculo()
+        self.grupo_obstaculos = pg.sprite.Group()
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
 
@@ -123,7 +121,7 @@ class Nivel1(Principal):
             self.jugador.update()
             self.pintar_fondo()
             self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            '''self.pintar_obtaculos()'''
+            self.generar_obstaculo()
             
             
             #self.pantalla.blit(self.jugador.image, self.jugador.rect)
@@ -136,28 +134,18 @@ class Nivel1(Principal):
         pos_y = (ALTO - alto)
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
-    '''def pintar_obtaculos(self):
-        filas = 4
-        columnas = 6
-        margen_superior = 20
+    def generar_obstaculo(self):
+        obstaculo = self.meteoritos
+        self.grupo_obstaculos.add(obstaculo)
+        if pg.time.get_ticks() % 1000 == 0:
+            self.generar_obstaculo()
+        
+        for obstaculo in self.grupo_obstaculos:
+            self.meteoritos.dibujar(self.pantalla)
 
-        for fila in range(filas):   # 0-3
-            for col in range(columnas):
-                # por aquí voy a pasar filas*columnas = 24 veces
-                margen_izquierdo = (ANCHO - columnas * self.meteoritos.rect.width) / 2
-                # x = ancho_lad * col
-                # y = alto_lad * fila
-                self.meteoritos.rect.x = self.meteoritos.rect.width * col + margen_izquierdo
-                self.meteoritos.rect.y = self.meteoritos.rect.height * fila + margen_superior
-                self.meteoritos.add(self.meteoritos)
-                print (self.meteoritos.rect)
-
-            self.meteoritos.generar_meteorito()
-            self.meteoritos.update()
+        self.grupo_obstaculos.update()
 
 
-        self.pantalla.blit(self.meteoritos)'''
-    
 
 
 class Nivel2:

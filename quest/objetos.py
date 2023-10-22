@@ -42,24 +42,25 @@ class Nave(pg.sprite.Sprite):
 
 
         
-'''class Obtaculos(pg.sprite.Sprite):
-        def __init__(self):
-            super().__init__()
-            self.images = []
+class Obstaculo(pg.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        ruta_meteoro = os.path.join('animacion', 'image','meteoro.jpeg')
+        self.image = pg.image.load(ruta_meteoro)
+        self.rect = self.image.get_rect()
+        self.rect.x = ANCHO
+        self.rect.y = random.randint(0, ALTO - self.rect.height)
+        self.velocidad = random.randint(2, 5)
 
-            ruta_meteoro = os.path.join('animacion', 'image', 'meteorito.jpg')
-            self.meteoro = pg.image.load(ruta_meteoro)
-            self.rect = self.meteoro.get_rect()
-            ruta_meteorito = os.path.join('animacion', 'image', 'meteoro.jpeg')
-            self.meteorito = pg.image.load(ruta_meteorito)
-            self.rect2 = self.meteorito.get_rect()
-            self.tiempo_inicial = pg.time.get_ticks()
-            self.tiempo_max = TIEMPO_MAX
+        ruta_meteorito = os.path.join('animacion', 'image', 'meteorito.jpg')
+        self.image2 =  pg.image.load(ruta_meteorito)
 
-        def generar_meteorito(self):
-            tiempo_actual = pg.time.get_ticks()
-            if tiempo_actual - self.tiempo_inicial < self.tiempo_max:
-                 if random.randrange(100) < 2:
-                    self.tiempo_inicial = tiempo_actual'''
+    def update(self):
+        self.rect.x -= self.velocidad
+        if self.rect.right < 0:
+            self.rect.x = ANCHO
+            self.rect.y = random.randint(0, ALTO - self.rect.height)
 
         
+    def dibujar(self, pantalla):
+        pantalla.blit(self.image, self.rect)
