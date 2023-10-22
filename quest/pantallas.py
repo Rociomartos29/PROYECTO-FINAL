@@ -1,4 +1,5 @@
 import os
+import random
 import pygame as pg
 from . import ALTO, ANCHO, FPS, COLOR_DE_TEXTO
 from .objetos import Nave, Obstaculo
@@ -98,9 +99,14 @@ class Nivel1(Principal):
         super().__init__(pantalla)
         self.jugador = Nave()
         self.meteoritos = Obstaculo()
-        self.grupo_obstaculos = pg.sprite.Group()
+        self.grupo_obstaculos = pg.sprite.Group()  # Crea un grupo para los obstáculos
+        
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
+        self.tiempo_generacion = 1000
+        self.tiempo_actual = pg.time.get_ticks()
+        self.tiempo_anterior_generacion = pg.time.get_ticks()
+        
 
 
         
@@ -113,18 +119,20 @@ class Nivel1(Principal):
             self.reloj.tick(FPS)
             for evento in pg.event.get():
                 if evento.type == pg.QUIT:
-                    return  True
+                    salir = True
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     juego_iniciado = True
             
+            # Lógica del juego
             
             self.jugador.update()
+            self.grupo_obstaculos.update()
+            
             self.pintar_fondo()
-            self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
             self.generar_obstaculo()
-            
-            
-            #self.pantalla.blit(self.jugador.image, self.jugador.rect)
+            self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
+       
+
             pg.display.flip()
 
     def pintar_fondo(self):
@@ -133,6 +141,8 @@ class Nivel1(Principal):
         pos_x = (ANCHO - ancho)
         pos_y = (ALTO - alto)
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
+
+
 
     def generar_obstaculo(self):
         obstaculo = self.meteoritos
@@ -144,6 +154,7 @@ class Nivel1(Principal):
             self.meteoritos.dibujar(self.pantalla)
 
         self.grupo_obstaculos.update()
+
 
 
 
