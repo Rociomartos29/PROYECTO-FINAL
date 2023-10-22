@@ -50,3 +50,4 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     He conseguido que se pinten los obstaculos pero tengo que quitarle el fondo a las imagenes.
     Llevo desde las 6 de tarde en el mismo punto, y actualmente son las 23:06 y por fin he conseguido pintar los dos meteoros.
     Ya salen los meteoritos aleatoriamente y no se superponen
+    He puesto que solo pueda haber 5 obstaculos en la pantalla pero se me vuelven a superponer.

@@ -99,17 +99,23 @@ class Nivel1(Principal):
         super().__init__(pantalla)
         self.jugador = Nave()
         self.grupo_obstaculos = pg.sprite.Group()  # Crea un grupo para los obstáculos
-
+        self.tiempo_maximo = 30000
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
-        self.tiempo_generacion = 1000
+        self.tiempo_generacion = 30000
+        self.max_obstaculos = 5
         self.tiempo_actual = pg.time.get_ticks()
         self.tiempo_anterior_generacion = pg.time.get_ticks()
+        self.tiempo_inicial = pg.time.get_ticks()
+        self.ultimo_tiempo_generacion = self.tiempo_inicial
+        self.generacion_activa = True
+        self.obstaculos_generados = 0 
 
     def bucle_principal(self):
         super().bucle_principal()
         salir = False
         juego_iniciado = False
+        tiempo_transcurrido = 0
         while not salir:
             self.reloj.tick(FPS)
             for evento in pg.event.get():
@@ -118,16 +124,23 @@ class Nivel1(Principal):
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     juego_iniciado = True
 
-            # Lógica del juego
 
             self.jugador.update()
             self.grupo_obstaculos.update()
 
             self.pintar_fondo()
-            self.generar_obstaculo()
+            
 
             self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            self.grupo_obstaculos.draw(self.pantalla)  # Dibuja todos los obstáculos en el grupo
+            self.grupo_obstaculos.draw(self.pantalla)  
+            tiempo_transcurrido = self.tiempo_actual - self.tiempo_inicial
+            if tiempo_transcurrido < self.tiempo_maximo:
+                if tiempo_transcurrido < self.tiempo_maximo and self.obstaculos_generados < self.max_obstaculos:
+                    self.generar_obstaculo()
+                    self.ultimo_tiempo_generacion = self.tiempo_actual
+                    self.obstaculos_generados += 1
+            else:
+                self.generacion_activa = False
 
             pg.display.flip()
 
@@ -138,18 +151,9 @@ class Nivel1(Principal):
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
     def generar_obstaculo(self):
-        self.tiempo_actual = pg.time.get_ticks()
-        if self.tiempo_actual - self.tiempo_anterior_generacion >= self.tiempo_generacion:
-            obstaculo = Obstaculo()  # Crea un nuevo obstáculo
-            self.grupo_obstaculos.add(obstaculo)  # Agrega el obstáculo al grupo
-            self.tiempo_anterior_generacion = self.tiempo_actual  # Actualiza el tiempo anterior
-
-        # Elimina los obstáculos que se salieron de la pantalla
-        for obstaculo in self.grupo_obstaculos.copy():
-            if obstaculo.rect.right < 0:
-                self.grupo_obstaculos.remove(obstaculo)
-
-
+        print("Generando obstáculo")
+        obstaculo = Obstaculo() 
+        self.grupo_obstaculos.add(obstaculo)
 
 
 

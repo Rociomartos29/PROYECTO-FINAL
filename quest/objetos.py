@@ -60,14 +60,14 @@ class Obstaculo(pg.sprite.Sprite):
     def __init__(self):
         super().__init__()
 
-        ruta_meteoro = os.path.join('animacion', 'image','meteoro.png')
+        ruta_meteoro = os.path.join('animacion', 'image','meteorito1.png')
         self.image = pg.image.load(ruta_meteoro)
         self.rect = self.image.get_rect()
         self.rect.x = ANCHO
         self.rect.y = random.randint(0, ALTO - self.rect.height)
         self.velocidad = random.randint(2, 5)
 
-        ruta_meteorito = os.path.join('animacion', 'image', 'meteorito.png')
+        ruta_meteorito = os.path.join('animacion', 'image', 'meteorito1.png')
         self.image2 =  pg.image.load(ruta_meteorito)
         self.rect1 = self.image2.get_rect()
         self.rect1.x = ANCHO
