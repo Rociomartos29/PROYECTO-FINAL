@@ -49,3 +49,4 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     Cambio el color del mensaje y ajusto el texto de la segunda página al centro.
     He conseguido que se pinten los obstaculos pero tengo que quitarle el fondo a las imagenes.
     Llevo desde las 6 de tarde en el mismo punto, y actualmente son las 23:06 y por fin he conseguido pintar los dos meteoros.
+    Ya salen los meteoritos aleatoriamente y no se superponen
