@@ -51,3 +51,6 @@ Proyecto fin Bootcamp Aprender a programar desde cero
     Llevo desde las 6 de tarde en el mismo punto, y actualmente son las 23:06 y por fin he conseguido pintar los dos meteoros.
     Ya salen los meteoritos aleatoriamente y no se superponen
     He puesto que solo pueda haber 5 obstaculos en la pantalla pero se me vuelven a superponer.
+
+# Día 25/10/23 día 6 de proyecto
+    He creado el marcador pero antes de pintarlo en pantalla quiero probar en un print que funciona. No funciona

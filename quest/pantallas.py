@@ -2,7 +2,7 @@ import os
 import random
 import pygame as pg
 from . import ALTO, ANCHO, FPS, COLOR_DE_TEXTO
-from .objetos import Nave, Obstaculo
+from .objetos import Nave, Obstaculo, Marcador
 
 class Principal:
     def __init__(self, pantalla):
@@ -98,18 +98,26 @@ class Nivel1(Principal):
     def __init__(self, pantalla):
         super().__init__(pantalla)
         self.jugador = Nave()
-        self.grupo_obstaculos = pg.sprite.Group()  # Crea un grupo para los obstáculos
+        self.meteorito = Obstaculo()
+        self.grupo_obstaculos = pg.sprite.Group()  
         self.tiempo_maximo = 30000
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
+
+        #Obstaculos
         self.tiempo_generacion = 30000
-        self.max_obstaculos = 5
+        self.max_obstaculos = 10
         self.tiempo_actual = pg.time.get_ticks()
         self.tiempo_anterior_generacion = pg.time.get_ticks()
         self.tiempo_inicial = pg.time.get_ticks()
         self.ultimo_tiempo_generacion = self.tiempo_inicial
         self.generacion_activa = True
         self.obstaculos_generados = 0 
+
+        self.marcador = Marcador()
+        self.obstaculos_salidos = 0
+
+
 
     def bucle_principal(self):
         super().bucle_principal()
@@ -134,13 +142,19 @@ class Nivel1(Principal):
             self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
             self.grupo_obstaculos.draw(self.pantalla)  
             tiempo_transcurrido = self.tiempo_actual - self.tiempo_inicial
-            if tiempo_transcurrido < self.tiempo_maximo:
-                if tiempo_transcurrido < self.tiempo_maximo and self.obstaculos_generados < self.max_obstaculos:
-                    self.generar_obstaculo()
-                    self.ultimo_tiempo_generacion = self.tiempo_actual
-                    self.obstaculos_generados += 1
-            else:
-                self.generacion_activa = False
+            if self.generacion_activa and len(self.grupo_obstaculos) < 6:
+                self.generar_obstaculo()
+                if self.obstaculos_generados >= 10:
+                    self.generacion_activa = False
+                
+
+            self.comprobar_obstaculos_salidos()
+            
+            puntuacion_actual = self.marcador.obtener_puntuacion()
+            print(f'Puntuación actual: {puntuacion_actual}')
+
+
+
 
             pg.display.flip()
 
@@ -151,9 +165,22 @@ class Nivel1(Principal):
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
     def generar_obstaculo(self):
-        print("Generando obstáculo")
-        obstaculo = Obstaculo() 
-        self.grupo_obstaculos.add(obstaculo)
+        if self.generacion_activa and len(self.grupo_obstaculos) < 6:
+            obstaculo = Obstaculo()
+            self.grupo_obstaculos.add(obstaculo)
+            self.obstaculos_generados += 1
+
+    def comprobar_obstaculos_salidos(self):
+        obstaculos_a_eliminar = []
+        for obstaculo in self.grupo_obstaculos:
+            if obstaculo.rect.right < 0:
+                # Incrementa la puntuación y marca el obstáculo para eliminación
+                self.marcador.incrementar_puntuacion(10)
+                obstaculos_a_eliminar.append(obstaculo)
+        # Elimina los obstáculos marcados
+        for obstaculo in obstaculos_a_eliminar:
+            self.grupo_obstaculos.remove(obstaculo)
+
 
 
 

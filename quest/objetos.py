@@ -78,21 +78,21 @@ class Obstaculo(pg.sprite.Sprite):
         if self.rect.right < 0:
             self.rect.x = ANCHO
             self.rect.y = random.randint(0, ALTO - self.rect.height)
-    def crear_obstaculos(self):
-        obstaculos = []
-        self.rect1.x -= self.velocidad
-        if self.rect1.right < 0:
-            self.rect1.x = ANCHO
-            self.rect1.y = random.randint(0, ALTO - self.rect1.height)
-        for i in range(5):  # Crea 5 obstáculos
-            x = ANCHO + i * 300  # Espaciados a lo largo del ancho de la pantalla
-            velocidad = random.randint(2, 5)
-            obstaculo = Obstaculo(x, velocidad)
-            obstaculos.append(obstaculo)
-        return obstaculos
+
 
         
 
     def dibujar(self, pantalla):
         pantalla.blit(self.image, self.rect)
         pantalla.blit(self.image2, self.rect1)
+
+
+class Marcador:
+    def __init__(self):
+        self.puntuacion = 0
+
+    def incrementar_puntuacion(self, puntos):
+        self.puntuacion += puntos
+
+    def obtener_puntuacion(self):
+        return self.puntuacion
