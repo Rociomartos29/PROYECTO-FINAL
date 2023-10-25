@@ -133,7 +133,14 @@ class Nivel1(Principal):
                     juego_iniciado = True
 
 
+            
             self.jugador.update()
+
+            # Verifica colisiones entre la nave y los obstáculos
+            if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_rect):
+                # La nave ha colisionado, cambia su imagen a explosión
+                self.jugador.estado = "explosion"
+                self.jugador.image = self.jugador.imagen_explosion
             self.grupo_obstaculos.update()
 
             self.pintar_fondo()
@@ -153,7 +160,11 @@ class Nivel1(Principal):
             puntuacion_actual = self.marcador.obtener_puntuacion()
             print(f'Puntuación actual: {puntuacion_actual}')
 
-
+            colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
+            if colisiones:
+                # La nave ha colisionado, cambia su imagen a explosión
+                self.jugador.estado = "explosion"
+                self.jugador.image = self.jugador.imagen_explosion
 
 
             pg.display.flip()
