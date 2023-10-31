@@ -154,20 +154,47 @@ class Nivel1(Principal):
                 if self.obstaculos_generados >= 10:
                     self.generacion_activa = False
                 
+            if self.jugador.estado == "explosion":
+                # Dibuja la imagen de explosión
+                self.pantalla.blit(self.jugador.imagen_explosion, self.jugador.rect)
+            else:
+                # Dibuja la imagen normal de la nave
+                self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
+
 
             self.comprobar_obstaculos_salidos()
             
-            puntuacion_actual = self.marcador.obtener_puntuacion()
-            print(f'Puntuación actual: {puntuacion_actual}')
-
-            colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
-            if colisiones:
-                # La nave ha colisionado, cambia su imagen a explosión
-                self.jugador.estado = "explosion"
-                self.jugador.image = self.jugador.imagen_explosion
+            self.comprobar_colisiones()
 
 
+            golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True)
+            if len(golpeadas) > 0:
+                vidas_eliminar = min(len(golpeadas), self.jugador.vidas - self.jugador.vidas_eliminadas)
+                self.jugador.vidas_eliminadas += vidas_eliminar  # Incrementa el contador de vidas eliminadas
+                self.marcador.aumentar(10 * vidas_eliminar)  # Aumenta el marcador por cada vida eliminada
+                self.jugador.vel_y = -self.jugador.vel_y
+            self.jugador.pintar_vidas(self.pantalla)
+
+            self.marcador.pintar(self.pantalla)
             pg.display.flip()
+
+    def comprobar_colisiones(self):
+        
+        colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True)
+
+        if colisiones:
+            for obstaculo in colisiones:
+                self.jugador.perder_vida()
+                if self.jugador.vidas <= 0:
+                    self.jugador.vidas = 3
+                    self.jugador.estado = "normal"
+                    self.jugador.tiempo_explosion = 0
+
+            self.jugador.image = self.jugador.imagen_original
+            self.jugador.explosion_sound.play()
+            self.jugador.perder_vida()
+        self.jugador.pintar_vidas(self.pantalla)
+        self.marcador.pintar(self.pantalla)
 
     def pintar_fondo(self):
         ancho, alto = self.fondo.get_size()
@@ -183,14 +210,16 @@ class Nivel1(Principal):
 
     def comprobar_obstaculos_salidos(self):
         obstaculos_a_eliminar = []
+        obstaculo=Obstaculo()
         for obstaculo in self.grupo_obstaculos:
-            if obstaculo.rect.right < 0:
+            if self.meteorito.rect.right < 0:
                 # Incrementa la puntuación y marca el obstáculo para eliminación
-                self.marcador.incrementar_puntuacion(10)
+                self.marcador.aumentar(10)
                 obstaculos_a_eliminar.append(obstaculo)
-        # Elimina los obstáculos marcados
+
         for obstaculo in obstaculos_a_eliminar:
             self.grupo_obstaculos.remove(obstaculo)
+    
 
 
 
