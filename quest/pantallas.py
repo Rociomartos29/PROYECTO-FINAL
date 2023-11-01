@@ -103,7 +103,7 @@ class Nivel1(Principal):
         self.tiempo_maximo = 30000
         ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
         self.fondo = pg.image.load(ruta_fondo)
-
+        
         #Obstaculos
         self.tiempo_generacion = 30000
         self.max_obstaculos = 10
@@ -113,9 +113,11 @@ class Nivel1(Principal):
         self.ultimo_tiempo_generacion = self.tiempo_inicial
         self.generacion_activa = True
         self.obstaculos_generados = 0 
+        
 
         self.marcador = Marcador()
         self.obstaculos_salidos = 0
+        self.puntuacion = 0
 
 
 
@@ -136,8 +138,8 @@ class Nivel1(Principal):
             
             self.jugador.update()
 
-            # Verifica colisiones entre la nave y los obstáculos
-            if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_rect):
+            # comprueba colisiones entre la nave y los obstáculos
+            if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask):
                 # La nave ha colisionado, cambia su imagen a explosión
                 self.jugador.estado = "explosion"
                 self.jugador.image = self.jugador.imagen_explosion
@@ -155,45 +157,57 @@ class Nivel1(Principal):
                     self.generacion_activa = False
                 
             if self.jugador.estado == "explosion":
+                self.jugador.explosion_sound.play()
                 # Dibuja la imagen de explosión
                 self.pantalla.blit(self.jugador.imagen_explosion, self.jugador.rect)
             else:
                 # Dibuja la imagen normal de la nave
                 self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-
+            self.comprobar_colisiones()
 
             self.comprobar_obstaculos_salidos()
             
-            self.comprobar_colisiones()
+            
+           
 
 
-            golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True)
-            if len(golpeadas) > 0:
-                vidas_eliminar = min(len(golpeadas), self.jugador.vidas - self.jugador.vidas_eliminadas)
-                self.jugador.vidas_eliminadas += vidas_eliminar  # Incrementa el contador de vidas eliminadas
-                self.marcador.aumentar(10 * vidas_eliminar)  # Aumenta el marcador por cada vida eliminada
-                self.jugador.vel_y = -self.jugador.vel_y
-            self.jugador.pintar_vidas(self.pantalla)
+            #golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True)
+            #if len(golpeadas) > 0:
+                #vidas_eliminar = min(len(golpeadas), self.jugador.vidas - self.jugador.vidas_eliminadas)
+                #self.jugador.vidas_eliminadas += vidas_eliminar  # Incrementa el contador de vidas eliminadas
+                #self.marcador.aumentar(10 * vidas_eliminar)  # Aumenta el marcador por cada vida eliminada
+                #self.jugador.vel_y = -self.jugador.vel_y
+            #self.jugador.pintar_vidas(self.pantalla)
 
             self.marcador.pintar(self.pantalla)
             pg.display.flip()
 
     def comprobar_colisiones(self):
         
-        colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True)
+        colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
 
-        if colisiones:
-            for obstaculo in colisiones:
+        for obstaculo in self.grupo_obstaculos:
+            for obstaculo in self.grupo_obstaculos:
+                if pg.sprite.collide_mask(self.jugador, obstaculo):
+                    
+                    self.puntuacion += 10
+            self.marcador.puntuacion = self.puntuacion
+            if pg.sprite.collide_mask(self.jugador, obstaculo):
+                # Hubo una colisión
                 self.jugador.perder_vida()
                 if self.jugador.vidas <= 0:
                     self.jugador.vidas = 3
                     self.jugador.estado = "normal"
                     self.jugador.tiempo_explosion = 0
+                self.jugador.image = self.jugador.imagen_original
+                
+                self.jugador.perder_vida()
+            else:
+                # No hubo colisión, aumenta la puntuación
+                self.puntuacion += 10
 
-            self.jugador.image = self.jugador.imagen_original
-            self.jugador.explosion_sound.play()
-            self.jugador.perder_vida()
         self.jugador.pintar_vidas(self.pantalla)
+        self.marcador.puntuacion = self.puntuacion
         self.marcador.pintar(self.pantalla)
 
     def pintar_fondo(self):
@@ -210,16 +224,19 @@ class Nivel1(Principal):
 
     def comprobar_obstaculos_salidos(self):
         obstaculos_a_eliminar = []
-        obstaculo=Obstaculo()
+
         for obstaculo in self.grupo_obstaculos:
-            if self.meteorito.rect.right < 0:
+            if obstaculo.rect.right < 0:
                 # Incrementa la puntuación y marca el obstáculo para eliminación
-                self.marcador.aumentar(10)
+                self.puntuacion += 10
                 obstaculos_a_eliminar.append(obstaculo)
 
         for obstaculo in obstaculos_a_eliminar:
             self.grupo_obstaculos.remove(obstaculo)
-    
+        
+        # Actualiza el marcador con la nueva puntuación
+        self.marcador.puntuacion = self.puntuacion
+        self.marcador.pintar(self.pantalla)
 
 
 

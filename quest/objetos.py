@@ -33,7 +33,8 @@ class Nave(pg.sprite.Sprite):
         self.explosion_sound = pg.mixer.Sound(rutasonido)
         self.tiempo_recuperacion = 0
         self.imagen_original = pg.image.load(ruta_image)
-
+        self.mask = pg.mask.from_surface(self.imagenes)
+       
         self.estado = "normal"
         self.tiempo_explosion = 0
         self.obstaculo = Obstaculo()
@@ -108,6 +109,7 @@ class Obstaculo(pg.sprite.Sprite):
         self.rect.x = ANCHO
         self.rect.y = random.randint(0, ALTO - self.rect.height)
         self.velocidad = random.randint(2, 5)
+        self.mask = pg.mask.from_surface(self.image)
 
         ruta_meteorito = os.path.join('animacion', 'image', 'meteorito1.png')
         self.image2 =  pg.image.load(ruta_meteorito)
@@ -135,7 +137,7 @@ class Marcador:
         fuente = 'sysfont.otf'
         ruta = os.path.join('animacion', fuente)
         self.tipo_letra = pg.font.Font(ruta, 36)
-
+        self.puntuacion = 0
     def aumentar(self, incremento):
         self.valor += incremento
 
