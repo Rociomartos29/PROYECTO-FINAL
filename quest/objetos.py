@@ -2,6 +2,8 @@ import random
 import os
 import pygame as pg
 from . import ANCHO, ALTO, TIEMPO_MAX, ALTO_MARCADOR,VEL_MAX, VEL_MIN_Y
+pg.mixer.init()
+
 
 
 
@@ -60,6 +62,7 @@ class Nave(pg.sprite.Sprite):
                 self.estado = "normal"  # Cambia el estado a normal
                 self.tiempo_explosion = 0
                 self.image = self.imagen_original
+                self.explosion_sound.play()
         self.comprobar_teclas()
 
         if pg.sprite.collide_mask(self, self.obstaculo):
