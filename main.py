@@ -9,7 +9,7 @@ def main():
     
 
     pantalla = pg.display.set_mode((ANCHO, ALTO))
-    pg.display.set_caption("Tu juego")
+    pg.display.set_caption("THE QUEST")
 
     portada = Portada(pantalla)
     historia = Historia(pantalla)

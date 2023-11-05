@@ -18,7 +18,7 @@ class Principal:
 
     def mostrar_mensaje(self, mensaje):
         fuente = pg.font.Font(None, 36)
-        texto_renderizado = fuente.render(mensaje, True, (255, 255, 255))  # Puedes ajustar el color a tu elección
+        texto_renderizado = fuente.render(mensaje, True, (255, 255, 255))  
         pos_x = (ANCHO - texto_renderizado.get_width()) // 2
         pos_y = ALTO // 2
         self.pantalla.blit(texto_renderizado, (pos_x, pos_y))
@@ -38,7 +38,7 @@ class Portada(Principal):
         ruta_font = os.path.join('animacion', 
                                  'sysfont.otf')
         self.tipo = pg.font.Font(ruta_font, 35)
-        self.reiniciar_juego = False  # Nueva variable de control
+        self.reiniciar_juego = False 
 
 
     def bucle_principal(self):
@@ -50,7 +50,7 @@ class Portada(Principal):
                     salir = True
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     salir = True
-                    self.reiniciar_juego = True  # Establece reiniciar_juego en True al presionar Espacio
+                    self.reiniciar_juego = True  
 
 
             self.pintar_animacion()
@@ -211,7 +211,7 @@ class Nivel1(Principal):
                     self.ultima_colision = obstaculo
                     self.marcador.puntuacion = self.puntuacion
                     obstaculo.kill()
-                    self.colisiones += 1  # Incrementa el contador de colisiones
+                    self.colisiones += 1 
 
             golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
             esquivados = len(self.grupo_obstaculos) - len(golpeadas)
@@ -228,8 +228,8 @@ class Nivel1(Principal):
 
         
         if portada.reiniciar_juego:
-            self.__init__(self.pantalla)  # Reinicia la instancia de Nivel1
-            self.bucle_principal()  # Reinicia el bucle principal de Nivel1
+            self.__init__(self.pantalla)  
+            self.bucle_principal()  
 
         self.salir = True
 
@@ -329,23 +329,23 @@ class Nivel2(Principal):
                 if evento.type == pg.QUIT:
                     salir = True
 
-            # Verificar el estado del juego y actuar en consecuencia
+            
             if not self.nivel_completado:
                 if not self.juego_iniciado:
-                    # Esperar a que el jugador presione espacio para iniciar
+                   
                     for evento in pg.event.get():
                         if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                             self.juego_iniciado = True
 
             if not self.nave_aterrizando:
-                self.generar_obstaculo()  # Mueve la generación de obstáculos aquí
+                self.generar_obstaculo()  
 
             # Lógica del juego
             self.comprobar_colisiones()
             if self.colisiones >= 3:
                 self.regresar_a_portada()
 
-            # Elimina los obstáculos que han salido de la pantalla
+            #
             self.grupo_obstaculos.update()
             for obstaculo in self.grupo_obstaculos.copy():
                 if obstaculo.rect.right < 0:
@@ -354,7 +354,7 @@ class Nivel2(Principal):
             self.grupo_obstaculos.update()
             self.pintar_fondo()
 
-            # Actualiza la nave si no está aterrizando
+            
             if not self.game_over and not self.nave_aterrizando:
                 self.jugador.update()
 
@@ -366,7 +366,7 @@ class Nivel2(Principal):
                             self.mostrar_planeta()
                             planeta_mostrado = True
 
-            # Pinta la nave o su explosión
+            
             if self.jugador.estado == "explosion":
                 self.jugador.explosion_sound.play()
                 self.pantalla.blit(self.jugador.imagen_explosion, self.jugador.rect)
@@ -379,11 +379,10 @@ class Nivel2(Principal):
                         self.nave_aterrizando = True
                         if not self.planeta_aparecido:
                             self.pantalla.blit(self.planeta, self.rect_planeta)
-                            self.rect_planeta.right = ANCHO  # Ajusta la posición del planeta como desees
+                            self.rect_planeta.right = ANCHO  
                             self.rect_planeta.centery = ALTO // 2
                             self.planeta_aparecido = True
 
-            # Pinta los obstáculos
             self.grupo_obstaculos.draw(self.pantalla)
 
             self.marcador.pintar(self.pantalla)
@@ -392,7 +391,7 @@ class Nivel2(Principal):
             pg.display.flip()
 
         if self.colisiones >= 3:
-            self.regresar_a_portada()  # Vuelve a la portada después de 3 colisiones
+            self.regresar_a_portada()  
 
         if self.jugador.vidas <= 0:
             self.game_over = True
@@ -400,7 +399,7 @@ class Nivel2(Principal):
         self.pasar_al_final()
 
     def eliminar_obstaculos(self):
-        self.grupo_obstaculos.empty()  # Elimina todos los obstáculos del grupo
+        self.grupo_obstaculos.empty()  
         self.obstaculos_generados = 0
 
     def regresar_a_portada(self):
@@ -408,8 +407,8 @@ class Nivel2(Principal):
         portada.bucle_principal()
 
         if portada.reiniciar_juego:
-            self.__init__(self.pantalla)  # Reinicia la instancia de Nivel1
-            self.bucle_principal()  # Reinicia el bucle principal de Nivel1
+            self.__init__(self.pantalla) 
+            self.bucle_principal()  
 
         self.salir = True
 
@@ -420,7 +419,7 @@ class Nivel2(Principal):
         for obstaculo in obstaculos_a_eliminar:
             obstaculo.kill()
 
-        # Verifica si hay menos de 10 obstáculos en pantalla y si la generación está inactiva
+        
         if len(self.grupo_obstaculos) < self.max_obstaculos and not self.generacion_activa:
             self.generacion_activa = True
 
@@ -440,7 +439,7 @@ class Nivel2(Principal):
                     self.ultima_colision = obstaculo
                     self.marcador.puntuacion = self.puntuacion
                     obstaculo.kill()
-                    self.colisiones += 1  # Incrementa el contador de colisiones
+                    self.colisiones += 1  
 
             golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
             esquivados = len(self.grupo_obstaculos) - len(golpeadas)
@@ -458,7 +457,7 @@ class Nivel2(Principal):
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
     def pasar_al_final(self):
-        nivel_final = Final(self.pantalla, self.puntuacion)  # Pasa la puntuación a la instancia de Final
+        nivel_final = Final(self.pantalla, self.puntuacion)  
         nivel_final.bucle_principal()
         self.salir = True
 class Final(Principal):
@@ -468,7 +467,7 @@ class Final(Principal):
         self.conexion = sqlite3.connect("records.db")
         self.cursor = self.conexion.cursor()
         self.crear_tabla_records()
-        self.puntuacion = puntuacion  # Almacena la puntuación como atributo de instancia
+        self.puntuacion = puntuacion 
 
 
     def crear_tabla_records(self):
@@ -495,7 +494,7 @@ class Final(Principal):
             
             pg.display.flip()
 
-        self.conexion.close()  # Cierra la conexión a la base de datos
+        self.conexion.close()  
         pg.quit()
 
     def insertar_record(self, jugador, puntuacion):
@@ -509,14 +508,14 @@ class Final(Principal):
         try:
             self.cursor.execute("SELECT jugador, puntuacion FROM records ORDER BY puntuacion DESC")
             records = self.cursor.fetchall()
-            y = 100  # Posición vertical inicial para mostrar registros
+            y = 100  
             for i, record in enumerate(records):
                 jugador, puntuacion = record
                 texto = f"#{i + 1}: Jugador: {jugador}, Puntuación: {puntuacion}"
                 self.mostrar_texto(texto, y)
-                y += 30  # Aumenta la posición vertical para el siguiente registro
+                y += 30  
 
-            # Muestra la puntuación en la pantalla de registros
+          
             self.mostrar_texto(f"Tu puntuación: {self.puntuacion}", y)
         except sqlite3.Error as e:
             print(f"Error al consultar los registros: {e}")

@@ -39,7 +39,7 @@ class Nave(pg.sprite.Sprite):
         self.tiempo_recuperacion = 0
         self.imagen_original = pg.image.load(ruta_image)
         self.mask = pg.mask.from_surface(self.imagenes)
-        self.vidas_mostradas = vidas_iniciales  # Inicialmente, todas las vidas se muestran
+        self.vidas_mostradas = vidas_iniciales  
         self.vidas_eliminadas = 0
 
         self.estado = "normal"
@@ -54,7 +54,7 @@ class Nave(pg.sprite.Sprite):
         if self.vidas_eliminadas < self.vidas:
             self.vidas_eliminadas += 1
         else:
-            # El jugador ha perdido todas las vidas
+            
             self.game_over = True
 
     def pintar_vidas(self, pantalla):
@@ -64,7 +64,7 @@ class Nave(pg.sprite.Sprite):
         vidas_actuales = self.vida_image[:self.vidas - self.vidas_eliminadas]
 
         total_width = len(vidas_actuales) * (self.rect_vida.width + 5)
-        x -= total_width  # Ajusta x para centrar las vidas en la ventana
+        x -= total_width  
 
         for vida in vidas_actuales:
             if x + self.rect_vida.width < ANCHO:
@@ -78,10 +78,10 @@ class Nave(pg.sprite.Sprite):
 
     def update(self):
         if self.estado == "explosion":
-            self.image = self.imagen_explosion  # Cambia la imagen a la de explosión
+            self.image = self.imagen_explosion  
             self.tiempo_explosion += 1
             if self.tiempo_explosion >= self.TIEMPO_MAX_EXPLOSION:
-                self.estado = "normal"  # Cambia el estado a normal
+                self.estado = "normal"  
                 self.tiempo_explosion = 0
                 self.image = self.imagen_original
                 self.explosion_sound.play()
