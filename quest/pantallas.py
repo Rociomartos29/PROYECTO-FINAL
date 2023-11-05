@@ -1,10 +1,11 @@
 import os
 import random
 import pygame as pg
-from . import ALTO, ANCHO, FPS, COLOR_DE_TEXTO
+from . import ALTO, ANCHO, FPS, COLOR_DE_TEXTO, TIEMPO_ANIMACION_NAVE
 from .objetos import Nave, Obstaculo, Marcador
 import sqlite3
 pg.mixer.init()
+pg.init()
 
 
 class Principal:
@@ -14,6 +15,15 @@ class Principal:
 
     def bucle_principal(self):
         print ('Esto es un metodo vacio')
+
+    def mostrar_mensaje(self, mensaje):
+        fuente = pg.font.Font(None, 36)
+        texto_renderizado = fuente.render(mensaje, True, (255, 255, 255))  # Puedes ajustar el color a tu elección
+        pos_x = (ANCHO - texto_renderizado.get_width()) // 2
+        pos_y = ALTO // 2
+        self.pantalla.blit(texto_renderizado, (pos_x, pos_y))
+        pg.display.flip()
+    
 
 
 class Portada(Principal):
@@ -28,6 +38,8 @@ class Portada(Principal):
         ruta_font = os.path.join('animacion', 
                                  'sysfont.otf')
         self.tipo = pg.font.Font(ruta_font, 35)
+        self.reiniciar_juego = False  # Nueva variable de control
+
 
     def bucle_principal(self):
         super().bucle_principal()
@@ -38,10 +50,13 @@ class Portada(Principal):
                     salir = True
                 if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
                     salir = True
+                    self.reiniciar_juego = True  # Establece reiniciar_juego en True al presionar Espacio
+
 
             self.pintar_animacion()
             self.pintar_mensaje()
             pg.display.flip()
+    
 
     def pintar_animacion(self):
         ancho, alto = self.animacion.get_size()
@@ -82,6 +97,7 @@ class Historia(Principal):
             self.pintar_historia()
             self.pintar_mensaje()
             pg.display.flip()
+    
 
     def pintar_historia(self):
         ancho, alto = self.historia.get_size()
@@ -99,354 +115,374 @@ class Historia(Principal):
 
 class Nivel1(Principal):
     def __init__(self, pantalla):
-        self.pantalla = pantalla
-        self.reloj = pg.time.Clock()
+        super().__init__(pantalla)
         self.jugador = Nave()
+        self.explosion_sound = pg.mixer.Sound(os.path.join('animacion', 'explosion.wav'))
+        self.explosion_sound.set_volume(1.0)
         self.grupo_obstaculos = pg.sprite.Group()
         self.tiempo_maximo = 30000
-        ruta_fondo = os.path.join('animacion', 'image', 'fondo1.png')
-        self.fondo = pg.image.load(ruta_fondo)
-        self.tiempo_inicial = pg.time.get_ticks()
         self.tiempo_nivel2 = 30000
-
-            # Obstáculos
         self.max_obstaculos = 10
-        self.tiempo_anterior_generacion = 0
         self.obstaculos_generados = 0
         self.generacion_activa = True
         self.marcador = Marcador()
         self.puntuacion = 0
-        self.tiempo_inicial  = 0
-        tiempo_nivel2 = 30000
+        self.tiempo_inicial = pg.time.get_ticks()
+        self.fondo = pg.image.load(os.path.join('animacion', 'image', 'fondo1.png'))
+        self.tiempo_anterior_generacion = 0
+        self.nivel_completado = False
+        self.juego_iniciado = False
+        self.game_over = False
+        self.sonido_reproducido = False
+        self.ultima_colision = None
+        self.salir = False  
+        self.colisiones = 0 
+        self.reiniciar_juego = False  
+ 
+
+    def bucle_principal(self):
+        while not self.salir:
+            tiempo_inicial = pg.time.get_ticks()
+            tiempo_transcurrido = 0
+
+            while not self.salir:
+                self.reloj.tick(FPS)
+                tiempo_actual = pg.time.get_ticks()
+                tiempo_transcurrido = tiempo_actual - tiempo_inicial
+
+                for evento in pg.event.get():
+                    if evento.type == pg.QUIT:
+                        self.salir = True
+                    if not self.nivel_completado:
+                        if not self.juego_iniciado:
+                            if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
+                                self.juego_iniciado = True
+                        else:
+                            if tiempo_transcurrido >= self.tiempo_maximo or self.obstaculos_generados >= self.max_obstaculos:
+                                self.nivel_completado = True
+                                self.generacion_activa = False
+
+                self.jugador.update()
+                self.comprobar_colisiones()
+                if self.colisiones >= 3:  
+                    self.regresar_a_portada()
+
+                self.grupo_obstaculos.update()
+                self.pintar_fondo()
+                self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
+
+                if self.generacion_activa and self.obstaculos_generados < self.max_obstaculos:
+                    self.generar_obstaculo()
+
+                self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
+
+                if self.jugador.estado == "explosion":
+                    self.jugador.explosion_sound.play()
+                    self.pantalla.blit(self.jugador.imagen_explosion, self.jugador.rect)
+                else:
+                    self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
+
+                if tiempo_transcurrido >= self.tiempo_nivel2:
+                    self.pasar_a_nivel2()
+
+                self.jugador.explosion_sound.set_volume(1.0)
+
+                self.grupo_obstaculos.draw(self.pantalla)
+                self.comprobar_obstaculos_salidos()
+                self.marcador.pintar(self.pantalla)
+                self.jugador.pintar_vidas(self.pantalla)
+
+                pg.display.flip()
+
+            if self.colisiones >= 3:
+                self.regresar_a_portada()  # Vuelve a la portada después de 3 colisiones
+
+        if self.jugador.vidas <= 0:
+            self.game_over = True
+
+    def comprobar_colisiones(self):
+        if not self.game_over:
+            colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
+
+            for obstaculo in colisiones:
+                if obstaculo != self.ultima_colision:
+                    self.jugador.eliminar_vida()
+                    self.explosion_sound.play()
+                    self.ultima_colision = obstaculo
+                    self.marcador.puntuacion = self.puntuacion
+                    obstaculo.kill()
+                    self.colisiones += 1  # Incrementa el contador de colisiones
+
+            golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
+            esquivados = len(self.grupo_obstaculos) - len(golpeadas)
+
+            if esquivados > 0:
+                vidas_eliminar = min(len(golpeadas), self.jugador.vidas - self.jugador.vidas_eliminadas)
+                self.jugador.vidas_eliminadas += vidas_eliminar
+                self.marcador.aumentar(len(self.grupo_obstaculos))
+                self.jugador.vel_y = -self.jugador.vel_y
+
+    def regresar_a_portada(self):
+        portada = Portada(self.pantalla)
+        portada.bucle_principal()
+
+        
+        if portada.reiniciar_juego:
+            self.__init__(self.pantalla)  # Reinicia la instancia de Nivel1
+            self.bucle_principal()  # Reinicia el bucle principal de Nivel1
+
+        self.salir = True
+
+    def generar_obstaculo(self):
+        if self.generacion_activa and len(self.grupo_obstaculos) < self.max_obstaculos:
+            tiempo_actual = pg.time.get_ticks()
+
+            if tiempo_actual - self.tiempo_anterior_generacion >= 2000:
+                obstaculo = Obstaculo()
+                self.grupo_obstaculos.add(obstaculo)
+                self.obstaculos_generados += 1
+                self.tiempo_anterior_generacion = tiempo_actual
+
+            if tiempo_actual - self.tiempo_inicial >= 30000:
+                self.generacion_activa = False
+
+    def comprobar_obstaculos_salidos(self):
+        obstaculos_a_eliminar = [obstaculo for obstaculo in self.grupo_obstaculos if obstaculo.rect.right < 0]
+        self.puntuacion += len(obstaculos_a_eliminar) * 10
+        self.grupo_obstaculos.remove(obstaculos_a_eliminar)
+        self.marcador.puntuacion = self.puntuacion
+
+        if self.obstaculos_generados >= self.max_obstaculos and not self.grupo_obstaculos:
+            self.pasar_a_nivel2()
+
+    def pintar_fondo(self):
+        ancho, alto = self.fondo.get_size()
+        pos_x = (ANCHO - ancho)
+        pos_y = (ALTO - alto)
+        self.pantalla.blit(self.fondo, (pos_x, pos_y))
+
+    def pasar_a_nivel2(self):
+        nivel2 = Nivel2(self.pantalla)
+        nivel2.bucle_principal()
+        self.salir = True
+class Nivel2(Principal):
+    def __init__(self, pantalla):
+        super().__init__(pantalla)
+        pg.mixer.init()
+        self.jugador = Nave()
+        
+        self.grupo_obstaculos = pg.sprite.Group()
+        
+        self.obstaculos_generados = 0
+        self.generacion_activa = True
+        self.marcador = Marcador()
+        self.puntuacion = 0
+        self.tiempo_inicial = pg.time.get_ticks()
+        self.planeta_mostrado = False
+        self.tiempo_maximo = 30000
+        self.tiempo_nivel2 = 30000
+        self.max_obstaculos = 10
+
+        self.planeta = pg.image.load(os.path.join('animacion', 'image', 'planeta.png'))
+        self.rect_planeta = self.planeta.get_rect()
+        self.rect_planeta.right = ANCHO  
+        self.rect_planeta.centery = ALTO // 2  
+
+        self.fondo = pg.image.load(os.path.join('animacion', 'image', 'fondo2.png'))
+        self.explosion_sound = pg.mixer.Sound(os.path.join('animacion', 'explosion.wav'))
+        self.explosion_sound.set_volume(1.0)
+        self.tiempo_anterior_generacion = 0
+        self.nivel_completado = False
+        self.juego_iniciado = False
+        self.planeta_aparecido = False  
+        self.nave_aterrizando = False  
+        self.angulo_giro = 0
+        self.velocidad_giro = 1
+        self.nave_y = 0
+        self.game_over = False
+        self.sonido_reproducido = False
+        self.ultima_colision = None
+        self.salir = False  
+        self.colisiones = 0 
+        self.reiniciar_juego = False
+        self.esperando_tecla = False  
+        self.tecla_presionada = False
+    def generar_obstaculo(self):
+        if len(self.grupo_obstaculos) < self.max_obstaculos:
+            obstaculo = Obstaculo()
+            self.grupo_obstaculos.add(obstaculo)
 
     def bucle_principal(self):
         salir = False
-        juego_iniciado = False
-        nivel_completado = False
         tiempo_inicial = pg.time.get_ticks()
+        tiempo_transcurrido_planeta = 0
+        planeta_mostrado = False
 
         while not salir:
             self.reloj.tick(FPS)
             tiempo_actual = pg.time.get_ticks()
             tiempo_transcurrido = tiempo_actual - tiempo_inicial
+            angulo_giro = 0
+            tecla_presionada = False
 
             for evento in pg.event.get():
                 if evento.type == pg.QUIT:
                     salir = True
-                if not nivel_completado:
-                    if not juego_iniciado:
+
+            # Verificar el estado del juego y actuar en consecuencia
+            if not self.nivel_completado:
+                if not self.juego_iniciado:
+                    # Esperar a que el jugador presione espacio para iniciar
+                    for evento in pg.event.get():
                         if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
-                            juego_iniciado = True
-                    else:
-                        if tiempo_transcurrido >= self.tiempo_maximo or self.obstaculos_generados >= self.max_obstaculos:
-                            nivel_completado = True
-                            self.generacion_activa = False
+                            self.juego_iniciado = True
 
-            self.jugador.update()
+            if not self.nave_aterrizando:
+                self.generar_obstaculo()  # Mueve la generación de obstáculos aquí
 
-            if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask):
-                self.jugador.estado = "explosion"
-                self.jugador.image = self.jugador.imagen_explosion
+            # Lógica del juego
+            self.comprobar_colisiones()
+            if self.colisiones >= 3:
+                self.regresar_a_portada()
+
+            # Elimina los obstáculos que han salido de la pantalla
+            self.grupo_obstaculos.update()
+            for obstaculo in self.grupo_obstaculos.copy():
+                if obstaculo.rect.right < 0:
+                    self.grupo_obstaculos.remove(obstaculo)
 
             self.grupo_obstaculos.update()
             self.pintar_fondo()
-            self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            if self.generacion_activa and self.obstaculos_generados < self.max_obstaculos:
-                self.generar_obstaculo()
 
-            if self.generacion_activa and len(self.grupo_obstaculos) < 6:
-                self.generar_obstaculo()
-                if self.obstaculos_generados >= self.max_obstaculos:
-                    self.generacion_activa = False
+            # Actualiza la nave si no está aterrizando
+            if not self.game_over and not self.nave_aterrizando:
+                self.jugador.update()
 
+            if not planeta_mostrado:
+                if not self.nivel_completado:
+                    if tiempo_transcurrido >= self.tiempo_nivel2:
+                        if self.obstaculos_generados >= self.max_obstaculos:
+                            self.planeta_aparecido = True
+                            self.mostrar_planeta()
+                            planeta_mostrado = True
+
+            # Pinta la nave o su explosión
             if self.jugador.estado == "explosion":
                 self.jugador.explosion_sound.play()
                 self.pantalla.blit(self.jugador.imagen_explosion, self.jugador.rect)
             else:
                 self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
 
-            if tiempo_transcurrido >= self.tiempo_nivel2:
-                self.pasar_a_nivel2()
+            if not self.nivel_completado:
+                if tiempo_transcurrido >= self.tiempo_nivel2:
+                    if self.obstaculos_generados >= self.max_obstaculos:
+                        self.nave_aterrizando = True
+                        if not self.planeta_aparecido:
+                            self.pantalla.blit(self.planeta, self.rect_planeta)
+                            self.rect_planeta.right = ANCHO  # Ajusta la posición del planeta como desees
+                            self.rect_planeta.centery = ALTO // 2
+                            self.planeta_aparecido = True
 
+            # Pinta los obstáculos
             self.grupo_obstaculos.draw(self.pantalla)
-            self.generar_obstaculo()
-            self.comprobar_colisiones()
-            self.comprobar_obstaculos_salidos()
+
             self.marcador.pintar(self.pantalla)
             self.jugador.pintar_vidas(self.pantalla)
 
             pg.display.flip()
 
-    def comprobar_colisiones(self):
-        colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
+        if self.colisiones >= 3:
+            self.regresar_a_portada()  # Vuelve a la portada después de 3 colisiones
 
-        for obstaculo in self.grupo_obstaculos:
-            if pg.sprite.collide_mask(self.jugador, obstaculo):
-                self.puntuacion += 10
+        if self.jugador.vidas <= 0:
+            self.game_over = True
 
-        if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True, pg.sprite.collide_mask):
-            self.jugador.perder_vida()
-            if self.jugador.vidas <= 0:
-                self.jugador.vidas = 3
-                self.jugador.estado = "normal"
-                self.jugador.tiempo_explosion = 0
-            self.jugador.image = self.jugador.imagen_original
-            self.jugador.explosion_sound.play() 
+        self.pasar_al_final()
 
-    def pintar_fondo(self):
-        ancho, alto = self.fondo.get_size()
-        pos_x = (ANCHO - ancho)
-        pos_y = (ALTO - alto)
-        self.pantalla.blit(self.fondo, (pos_x, pos_y))
+    def eliminar_obstaculos(self):
+        self.grupo_obstaculos.empty()  # Elimina todos los obstáculos del grupo
+        self.obstaculos_generados = 0
 
-    def generar_obstaculo(self):
-        if self.generacion_activa and len(self.grupo_obstaculos) < self.max_obstaculos:
-            tiempo_actual = pg.time.get_ticks()
-            
-            # Controla la velocidad de generación (cada 2 segundos)
-            if tiempo_actual - self.tiempo_anterior_generacion >= 2000:
-                obstaculo = Obstaculo()
-                self.grupo_obstaculos.add(obstaculo)
-                self.obstaculos_generados += 1
-                self.tiempo_anterior_generacion = tiempo_actual
-                
-            # Detener la generación de obstáculos después de 30 segundos
-            if tiempo_actual - self.tiempo_inicial >= 30000:  # 30 segundos
-                self.generacion_activa = False
+    def regresar_a_portada(self):
+        portada = Portada(self.pantalla)
+        portada.bucle_principal()
+
+        if portada.reiniciar_juego:
+            self.__init__(self.pantalla)  # Reinicia la instancia de Nivel1
+            self.bucle_principal()  # Reinicia el bucle principal de Nivel1
+
+        self.salir = True
+
 
     def comprobar_obstaculos_salidos(self):
-        obstaculos_a_eliminar = []
-
-        for obstaculo in self.grupo_obstaculos:
-            if obstaculo.rect.right < 0:
-                self.puntuacion += 10
-                obstaculos_a_eliminar.append(obstaculo)
+        obstaculos_a_eliminar = [obstaculo for obstaculo in self.grupo_obstaculos if obstaculo.rect.right < 0]
 
         for obstaculo in obstaculos_a_eliminar:
-            self.grupo_obstaculos.remove(obstaculo)
+            obstaculo.kill()
 
-        self.marcador.puntuacion = self.puntuacion
-
-        if self.obstaculos_generados >= self.max_obstaculos and len(self.grupo_obstaculos) == 0:
-            self.pasar_a_nivel2()
-
-    def pasar_a_nivel2(self):
-        nivel2 = Nivel2(self.pantalla)
-        nivel2.bucle_principal()
-
-
-class Nivel2(Principal):
-    def __init__(self, pantalla):
-        super().__init__(pantalla)
-        self.pantalla = pantalla
-        self.reloj = pg.time.Clock()
-        self.jugador = Nave()
-        self.grupo_obstaculos = pg.sprite.Group()
-        self.tiempo_maximo = 30000
-        ruta_fondo = os.path.join('animacion', 'image', 'fondo2.png')
-        self.fondo = pg.image.load(ruta_fondo)
-        self.tiempo_inicial = pg.time.get_ticks()
-        self.tiempo_nivel2 = 30000
-        self.jugador_girado = False
-        self.nivel2_iniciado = False
-        self.tiempo_transcurrido = 0  # Agregamos esta variable
-        self.tiempo_actual = pg.time.get_ticks()
-        # Obstáculos
-        self.max_obstaculos = 10
-        self.tiempo_anterior_generacion = 0
-        self.obstaculos_generados = 0
-        self.generacion_activa = True
-        self.marcador = Marcador()
-        self.puntuacion = 0
-
-    def bucle_principal(self):
-        salir = False
-        juego_iniciado = False
-        nivel_completado = False
-        tiempo_inicial = pg.time.get_ticks()
-
-        while not salir:
-            self.reloj.tick(FPS)
-            for evento in pg.event.get():
-                if evento.type == pg.QUIT:
-                    salir = True
-
-                if not nivel_completado:
-                    if not juego_iniciado:
-                        if evento.type == pg.KEYDOWN and evento.key == pg.K_SPACE:
-                            juego_iniciado = True
-                    else:
-                        if self.tiempo_transcurrido >= self.tiempo_nivel2:
-                            resultado_nivel2 = self.pasar_a_nivel2()
-                            if resultado_nivel2 == "Final":
-                                return "Final"
-
-
-
-            self.jugador.update()
-            if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask):
-                self.jugador.estado = "explosion"
-                self.jugador.image = self.jugador.imagen_explosion
-
-            self.grupo_obstaculos.update()
-            self.pintar_fondo()
-            self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            if self.generacion_activa and self.obstaculos_generados < self.max_obstaculos:
-                self.generar_obstaculo()
-
-            if self.generacion_activa and len(self.grupo_obstaculos) < 6:
-                self.generar_obstaculo()
-                if self.obstaculos_generados >= self.max_obstaculos:
-                    self.generacion_activa = False
-
-            if self.jugador.estado == "explosion":
-                self.jugador.explosion_sound.play()
-                self.pantalla.blit(self.jugador.imagen_explosion, self.jugador.rect)
-            else:
-                self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-
-            if not self.nivel2_iniciado:
-                self.tiempo_transcurrido = self.tiempo_actual - tiempo_inicial
-
-            if self.tiempo_transcurrido >= self.tiempo_maximo:
-                self.jugador_girar_nave()
-                self.marcador.puntuacion = self.puntuacion
-                self.marcador.pintar(self.pantalla)
-                nivel_completado = True
-
-            if nivel_completado:
-                self.mostrar_planeta()
-                self.mostrar_mensaje("Pulsa Espacio para continuar")
-
-            if self.tiempo_transcurrido >= self.tiempo_nivel2:
-                self.pasar_a_final()
-
-            self.grupo_obstaculos.draw(self.pantalla)
-            self.generar_obstaculo()
-            self.comprobar_colisiones()
-            self.comprobar_obstaculos_salidos()
-            self.marcador.pintar(self.pantalla)
-            self.jugador.pintar_vidas(self.pantalla)
-
-            if nivel_completado:
-                self.mostrar_planeta()
-                self.mostrar_mensaje("Pulsa Espacio para continuar")
-
-            if self.tiempo_transcurrido >= self.tiempo_nivel2:
-                return "Final"
-
-            self.pantalla.blit(self.jugador.imagenes, self.jugador.rect)
-            self.grupo_obstaculos.draw(self.pantalla)
-            self.generar_obstaculo()
-            pg.display.flip()
-        pg.quit()
-    def pintar_fondo(self):
-        ancho, alto = self.fondo.get_size()
-        pos_x = (ANCHO - ancho)
-        pos_y = (ALTO - alto)
-        self.pantalla.blit(self.fondo, (pos_x, pos_y))
-
+        # Verifica si hay menos de 10 obstáculos en pantalla y si la generación está inactiva
+        if len(self.grupo_obstaculos) < self.max_obstaculos and not self.generacion_activa:
+            self.generacion_activa = True
 
     def mostrar_planeta(self):
-        ruta_planeta = os.path.join('animacion', 'image', 'planeta.png')
-        planeta = pg.image.load(ruta_planeta)
-        self.pantalla.blit(planeta, (0, ALTO // 2))
-
-    def mostrar_mensaje(self, mensaje):
-        fuente = pg.font.Font(None, 36)
-        texto = fuente.render(mensaje, True, COLOR_DE_TEXTO)
-        pos_x = (ANCHO - texto.get_width()) // 2
-        pos_y = ALTO // 2
-        self.pantalla.blit(texto, (pos_x, pos_y))
-
-    def jugador_girar_nave(self):
-        if not self.jugador_girado:
-            # Cargar la imagen de la nave girada 180 grados
-            nave_girada = pg.transform.rotate(self.jugador.imagen_original, 180)
-
-            # Obtener el rectángulo original de la imagen
-            rect_original = self.jugador.rect
-
-            # Asignar la imagen girada a la nave
-            self.jugador.imagenes = nave_girada
-            self.jugador.rect = self.jugador.imagenes.get_rect()
-
-            # Centrar el rectángulo en la posición original
-            self.jugador.rect.center = rect_original.center
-
-            # Establecer el indicador de que la nave ha girado
-            self.jugador_girado = True
-
-    def generar_obstaculo(self):
-        if self.generacion_activa and len(self.grupo_obstaculos) < self.max_obstaculos:
-            tiempo_actual = pg.time.get_ticks()
-            
-            # Controla la velocidad de generación (cada 2 segundos)
-            if tiempo_actual - self.tiempo_anterior_generacion >= 2000:
-                obstaculo = Obstaculo()
-                self.grupo_obstaculos.add(obstaculo)
-                self.obstaculos_generados += 1
-                self.tiempo_anterior_generacion = tiempo_actual
-                
-            # Detener la generación de obstáculos después de 30 segundos
-            if tiempo_actual - self.tiempo_inicial >= 30000:  # 30 segundos
-                self.generacion_activa = False
+        self.pantalla.blit(self.planeta, self.rect_planeta)
+        self.rect_planeta.left = ANCHO // 2  
+        self.rect_planeta.centery = ALTO // 2  
 
     def comprobar_colisiones(self):
-        colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
+        if not self.game_over:
+            colisiones = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
 
-        for obstaculo in self.grupo_obstaculos:
-            if pg.sprite.collide_mask(self.jugador, obstaculo):
-                self.puntuacion += 10
+            for obstaculo in colisiones:
+                if obstaculo != self.ultima_colision:
+                    self.jugador.eliminar_vida()
+                    self.explosion_sound.play()
+                    self.ultima_colision = obstaculo
+                    self.marcador.puntuacion = self.puntuacion
+                    obstaculo.kill()
+                    self.colisiones += 1  # Incrementa el contador de colisiones
 
-        if pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, True, pg.sprite.collide_mask):
-            self.jugador.perder_vida()
-            if self.jugador.vidas <= 0:
-                self.jugador.vidas = 3
-                self.jugador.estado = "normal"
-                self.jugador.tiempo_explosion = 0
-            self.jugador.image = self.jugador.imagen_original
-            self.jugador.explosion_sound.play()
+            golpeadas = pg.sprite.spritecollide(self.jugador, self.grupo_obstaculos, False, pg.sprite.collide_mask)
+            esquivados = len(self.grupo_obstaculos) - len(golpeadas)
 
-    def comprobar_obstaculos_salidos(self):
-        obstaculos_a_eliminar = []
+            if esquivados > 0:
+                vidas_eliminar = min(len(golpeadas), self.jugador.vidas - self.jugador.vidas_eliminadas)
+                self.jugador.vidas_eliminadas += vidas_eliminar
+                self.marcador.aumentar(len(self.grupo_obstaculos))
+                self.jugador.vel_y = -self.jugador.vel_y
 
-        for obstaculo in self.grupo_obstaculos:
-            if obstaculo.rect.right < 0:
-                self.puntuacion += 10
-                obstaculos_a_eliminar.append(obstaculo)
+    def pintar_fondo(self):
+        ancho, alto = self.fondo.get_size()
+        pos_x = (ANCHO - ancho)
+        pos_y = (ALTO - alto)
+        self.pantalla.blit(self.fondo, (pos_x, pos_y))
 
-        for obstaculo in obstaculos_a_eliminar:
-            self.grupo_obstaculos.remove(obstaculo)
-
-        self.marcador.puntuacion = self.puntuacion
-
-        if self.obstaculos_generados >= self.max_obstaculos and len(self.grupo_obstaculos) == 0:
-            self.pasar_a_final()
-
-    def pasar_a_final(self):
-        final = Final(self.pantalla)
-        final.bucle_principal()
+    def pasar_al_final(self):
+        nivel_final = Final(self.pantalla, self.puntuacion)  # Pasa la puntuación a la instancia de Final
+        nivel_final.bucle_principal()
+        self.salir = True
 class Final(Principal):
-    def __init__(self, pantalla):
+    def __init__(self, pantalla, puntuacion):
         super().__init__(pantalla)
-        self.pantalla = pantalla
-        self.reloj = pg.time.Clock()
-
-        ruta_fondo = os.path.join('animacion', 'image', 'records.png')
-        self.fondo = pg.image.load(ruta_fondo)
-
-        # Crear una conexión a la base de datos (o crear una nueva si no existe)
+        self.fondo = pg.image.load(os.path.join('animacion', 'image', 'records.png'))
         self.conexion = sqlite3.connect("records.db")
         self.cursor = self.conexion.cursor()
+        self.crear_tabla_records()
+        self.puntuacion = puntuacion  # Almacena la puntuación como atributo de instancia
 
-        # Crear una tabla para almacenar los récords si no existe
-        self.cursor.execute("""
-            CREATE TABLE IF NOT EXISTS records (
-                jugador TEXT,
-                puntuacion INTEGER
-            )
-        """)
+
+    def crear_tabla_records(self):
+        try:
+            self.cursor.execute("""
+                CREATE TABLE IF NOT EXISTS records (
+                    jugador TEXT,
+                    puntuacion INTEGER
+                )
+            """)
+            self.conexion.commit()
+        except sqlite3.Error as e:
+            print(f"Error al crear la tabla de registros: {e}")
+
     def bucle_principal(self):
         salir = False
         while not salir:
@@ -454,36 +490,47 @@ class Final(Principal):
                 if evento.type == pg.QUIT:
                     salir = True
 
-            self.mostrar_records() 
-            self.insertar_record("Jugador1", 1000)           
             self.pintar_fondo()
+            self.mostrar_records()
+            
             pg.display.flip()
 
-        # Ejemplo: Insertar un récord en la base de datos
-        # Cambia esto a donde desees insertar los récords
-        
-
-        # Ejemplo: Mostrar récords en la consola
-        
+        self.conexion.close()  # Cierra la conexión a la base de datos
+        pg.quit()
 
     def insertar_record(self, jugador, puntuacion):
-        # Insertar un récord en la base de datos
-        self.cursor.execute("INSERT INTO records (jugador, puntuacion) VALUES (?, ?)", (jugador, puntuacion))
-        self.conexion.commit()
+        try:
+            self.cursor.execute("INSERT INTO records (jugador, puntuacion) VALUES (?, ?)", (jugador, puntuacion))
+            self.conexion.commit()
+        except sqlite3.Error as e:
+            print(f"Error al insertar el registro: {e}")
 
     def mostrar_records(self):
-        # Consultar récords de la base de datos y mostrarlos
-        self.cursor.execute("SELECT jugador, puntuacion FROM records ORDER BY puntuacion DESC")
-        records = self.cursor.fetchall()
+        try:
+            self.cursor.execute("SELECT jugador, puntuacion FROM records ORDER BY puntuacion DESC")
+            records = self.cursor.fetchall()
+            y = 100  # Posición vertical inicial para mostrar registros
+            for i, record in enumerate(records):
+                jugador, puntuacion = record
+                texto = f"#{i + 1}: Jugador: {jugador}, Puntuación: {puntuacion}"
+                self.mostrar_texto(texto, y)
+                y += 30  # Aumenta la posición vertical para el siguiente registro
 
-        for i, record in enumerate(records):
-            jugador, puntuacion = record
-            print(f"#{i + 1}: Jugador: {jugador}, Puntuación: {puntuacion}")
+            # Muestra la puntuación en la pantalla de registros
+            self.mostrar_texto(f"Tu puntuación: {self.puntuacion}", y)
+        except sqlite3.Error as e:
+            print(f"Error al consultar los registros: {e}")
 
-
+    def mostrar_texto(self, texto, y):
+        fuente = pg.font.Font(None, 36)
+        texto_renderizado = fuente.render(texto, True, COLOR_DE_TEXTO)
+        pos_x = (ANCHO - texto_renderizado.get_width()) // 2
+        self.pantalla.blit(texto_renderizado, (pos_x, y))
 
     def pintar_fondo(self):
         ancho, alto = self.fondo.get_size()
-        pos_x = (ANCHO - ancho)
-        pos_y = (ALTO - alto)
+        pos_x = (ANCHO - ancho) // 2
+        pos_y = (ALTO - alto) // 2
         self.pantalla.blit(self.fondo, (pos_x, pos_y))
+
+    

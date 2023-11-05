@@ -55,3 +55,10 @@ Proyecto fin Bootcamp Aprender a programar desde cero
 # Día 25/10/23 día 6 de proyecto
     He creado el marcador pero antes de pintarlo en pantalla quiero probar en un print que funciona. No funciona
     Tambien creo las colisiones. Tampoco funciona.
+
+
+
+
+
+# No he podido hacer mas
+Siento que no este completo pero he estado esta semana enferma y no he podido hacer mucho. 

@@ -7,16 +7,19 @@ pg.mixer.init()
 
 
 
+
 class Nave(pg.sprite.Sprite):
     def __init__(self, vidas_iniciales=3):
+        pg.sprite.Sprite.__init__(self)
+
         self.TIEMPO_MAX_EXPLOSION = 100
         self.imagenes = []
         margen = 750
-        centro_imagen=40
-        
+        centro_imagen = 40
+
         ruta_image = os.path.join('animacion', 'image', 'nave_buena.png')
-        self.imagenes=  pg.image.load(ruta_image)
-        self.rect = self.imagenes.get_rect(midbottom=(ANCHO-margen, ALTO/2+centro_imagen))
+        self.imagenes = pg.image.load(ruta_image)
+        self.rect = self.imagenes.get_rect(midbottom=(ANCHO - margen, ALTO / 2 + centro_imagen))
         self.mask = pg.mask.from_surface(self.imagenes)
         ruta_explosion = os.path.join('animacion', 'image', 'explosion.png')
         self.imagen_explosion = pg.image.load(ruta_explosion)
@@ -24,31 +27,50 @@ class Nave(pg.sprite.Sprite):
         ruta_explosion2 = os.path.join('animacion', 'image', 'explosion2.png')
         self.explosion2 = pg.image.load(ruta_explosion2)
         self.rect_explosion2 = self.explosion2.get_rect()
+        self.game_over = False
+        
 
         self.vidas = vidas_iniciales
-        rutavida = os.path.join('animacion', 'image','vida.png')
-        self.vida_image = [pg.image.load(rutavida) for _ in range(self.vidas)]
+        self.vida_image = [pg.image.load(os.path.join('animacion', 'image', 'vida.png'))for _ in range(vidas_iniciales)]
         self.rect_vida = self.vida_image[0].get_rect()
-        self.rect_vida.topleft = (10, 10)
-        self.vidas_eliminadas = 0
-        rutasonido= os.path.join('animacion', 'explosion.wav')
+        self.rect_vida.topleft = (ANCHO - 10 - self.rect_vida.width, 10)
+        rutasonido = os.path.join('animacion', 'explosion.wav')
         self.explosion_sound = pg.mixer.Sound(rutasonido)
         self.tiempo_recuperacion = 0
         self.imagen_original = pg.image.load(ruta_image)
         self.mask = pg.mask.from_surface(self.imagenes)
-       
+        self.vidas_mostradas = vidas_iniciales  # Inicialmente, todas las vidas se muestran
+        self.vidas_eliminadas = 0
+
         self.estado = "normal"
         self.tiempo_explosion = 0
         self.obstaculo = Obstaculo()
         self.vel_y = 0
+        self.girado = False
+        self.nave_giro_completo = False
+        self.nave_avanzando = False
 
+    def eliminar_vida(self):
+        if self.vidas_eliminadas < self.vidas:
+            self.vidas_eliminadas += 1
+        else:
+            # El jugador ha perdido todas las vidas
+            self.game_over = True
 
     def pintar_vidas(self, pantalla):
-        for i, imagen_vida in enumerate(self.vida_image):
-            x = ANCHO - (i + 1) * (self.rect_vida.width + 5)  # Ajustado para que las vidas estén en la esquina superior derecha
-            y = 10
-            pantalla.blit(imagen_vida, (x, y))
-        print(f"Vida {i}: {x}, {y}")
+        x = ANCHO - 10  # Alinea con el borde derecho
+        y = 10
+
+        vidas_actuales = self.vida_image[:self.vidas - self.vidas_eliminadas]
+
+        total_width = len(vidas_actuales) * (self.rect_vida.width + 5)
+        x -= total_width  # Ajusta x para centrar las vidas en la ventana
+
+        for vida in vidas_actuales:
+            if x + self.rect_vida.width < ANCHO:
+                pantalla.blit(vida, (x, y))
+            x += self.rect_vida.width + 5
+
 
     def inicializar_velocidades(self):
         self.vel_x = random.randint(-VEL_MAX, VEL_MAX)
@@ -66,14 +88,20 @@ class Nave(pg.sprite.Sprite):
         self.comprobar_teclas()
 
         if pg.sprite.collide_mask(self, self.obstaculo):
-                self.inicializar_velocidades()
-        
+            self.inicializar_velocidades()
+
     def perder_vida(self):
         if self.vidas > 0:
             self.vidas -= 1
             self.vidas_eliminadas += 1
-            
-        
+            if self.vidas_eliminadas <= len(self.vida_image):
+                del self.vida_image[-1]
+            else:
+                print("No se eliminó una imagen de vida.")
+
+    def reiniciar_vidas(self):
+        self.max_vidas_mostradas = self.vidas
+
     def comprobar_colisiones(self, grupo_obstaculos):
         # Verifica la colisión con los obstáculos
         colisiones = pg.sprite.spritecollide(self, grupo_obstaculos, False)
@@ -101,6 +129,8 @@ class Nave(pg.sprite.Sprite):
 
 
 
+
+
         
 class Obstaculo(pg.sprite.Sprite):
     def __init__(self):
@@ -120,6 +150,7 @@ class Obstaculo(pg.sprite.Sprite):
         self.rect1.x = ANCHO
         self.rect1.y = random.randint(0, ALTO - self.rect1.height)
         self.mask = pg.mask.from_surface(self.image)
+        
 
     def update(self):
         self.rect.x -= self.velocidad
@@ -138,7 +169,7 @@ class Marcador:
     def __init__(self):
         self.valor = 0
         fuente = 'sysfont.otf'
-        ruta = os.path.join('animacion', fuente)
+        ruta = os.path.abspath(os.path.join('animacion', 'sysfont.otf'))
         self.tipo_letra = pg.font.Font(ruta, 36)
         self.puntuacion = 0
     def aumentar(self, incremento):
